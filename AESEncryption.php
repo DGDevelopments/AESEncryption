@@ -11,7 +11,7 @@
 
 class Encryption {
 
-   protected function Encrypt ($String){
+   public function Encrypt ($String){
         /*
          *  Create an Encrypted String.
          *  @Var string
@@ -43,11 +43,13 @@ class Encryption {
         $Encrypted_String = $Array['EncryptedString'];
         $IV = $Array['IV'];
         $Hash = $Array['Hash'];
+        $Hash_Count = count(str_split($Hash));
         $EncStr_Arr = str_split($Encrypted_String);
         $Count = strlen($IV);
         $Increment = 0;
         $String = "";
-        $String .= $Count.$Hash; // Append the Count and Hash (as EncryptedString and IV are different lengths. Used to compensate
+            // NEW: Appending the Hash Count, to be used in later functions. So The correct Hash can be obtained.
+        $String .= $Hash_Count.$Count.$Hash; // Append the Count and Hash (as EncryptedString and IV are different lengths. Used to compensate
         While ($Increment < $Count){
             /*
              *  This loop appends to the string created in the order:
@@ -65,6 +67,7 @@ class Encryption {
          *  After The loop has broken (Increment reaches the count of the IV), implode the Remainder elements (encrypted string)
          *  and return string + imploded array
          */
+
         $Encrypted_String = implode("",$EncStr_Arr);
         return $String.$Encrypted_String;
     }
@@ -73,19 +76,40 @@ class Encryption {
    public function UnMerge($String){
         /*
          *  function splits a string into 3 elements of an array to a usable format for the decryption
-         *      1) Split the string into an array, 1 character = 1 element
-         *      2) IVlength is stored and created into the 2 digit number to be used later
-         *      3) Get the hash created in StringMerge function
-         *      4) Unset the first 3 elements as they provide no extra use
-         *
+         *      1) Split the String into an Array, 1 character = 1 element
+         *      2) The hash count is obtained (pushed to first character in the merge)
+         *      3) Unset the Hash Number
+         *      4) IV length is stored and created into the 2 digit number to be used later
+         *      5) Unset the IV Containers in elements 1 & 2
+         *      6) Reset the Array Index to 0
+         *      7) See While loop Comments
          *
          */
         $String_Array = str_split($String);
-        $IVLength = $String_Array[0].$String_Array[1];
-        $Hash = $String_Array[2];
-        unset($String_Array[0]);
+
+       $Hash_Count = $String_Array[0];
+       unset($String_Array[0]);
+        $IVLength = $String_Array[1].$String_Array[2];
+       $Hash = NULL;
         unset($String_Array[1]);
         unset($String_Array[2]);
+       $Hash_Incrementer = 0;
+       $String_Array = array_values($String_Array);
+       while ($Hash_Incrementer < $Hash_Count){
+           /*
+            *  Use a while loop to pull correct Hash number from the string & unsetting as we go
+            */
+           $Hash .= $String_Array[$Hash_Incrementer];
+           unset($String_Array[$Hash_Incrementer]);
+
+           $Hash_Incrementer++;
+
+       }
+       /*
+        *  Increment the array values to start from 1 instead of 0
+        */
+       array_unshift($String_Array, null);
+       unset($String_Array[0]);
 
         $IV = null;
         $Encryption = null;
@@ -97,11 +121,12 @@ class Encryption {
              */
             if($Key&1) {
                 $IV .= $Value;
+
             } else {
                 $Encryption .= $Value;
             }
             unset($String_Array[$Key]); // Unset as we go
-            if ($IVLength*2+1 == $Key){
+            if ($IVLength*2 == $Key){
                 /*
                  *
                  *  If Correct IV length is equal to the Key then end the foreach loop.
@@ -119,6 +144,7 @@ class Encryption {
                 break;
             }
         }
+
 
         return array(
             /*
