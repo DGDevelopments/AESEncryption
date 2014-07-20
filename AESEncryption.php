@@ -173,12 +173,42 @@ class Encryption {
         $Step_3 = $this->UnMerge($Step_2);
         $Step_4 = $this->Decrypt($Step_3);
 
-       return array(
-           "Step1" => array ($Step_1),
-           "Step2"=> array($Step_2),
-           "Step3"=> array($Step_3),
-           "Step4"=> array($Step_4)
-       );
+       $Return_Array = array();
+
+       if ($Step_1['EncryptedString'] === $Step_3['EncryptedString']){
+           $Return_Array[] = "Encryption Strings match on Unmerging & Encryption";
+       }else{
+           $Return_Array['Errors']["EncryptedString"] = array(
+               "Encryption String on Encryption and Unmerging does not match",
+               "Encryption" => $Step_1['EncryptedString'],
+               "Unmerging" => $Step_2['EncryptedString']
+           );
+       }
+       if ($Step_1['IV'] === $Step_3['IV']){
+           $Return_Array[] = "IV Strings match on Unmerging & Encryption";
+       }else{
+           $Return_Array['Errors']["IV"] = array(
+               "IV String on Encryption and Unmerging does not match",
+               "Encryption_IV" => $Step_1['IV'],
+               "Unmerging_IV" => $Step_2['IV']
+           );
+       }
+       if ($Step_1['Hash'] === $Step_3['Hash']){
+           $Return_Array[] = "Hash Strings match on Unmerging & Encryption";
+       }else{
+           $Return_Array['Errors']["Hash"] = array(
+               "Hash String on Encryption and Unmerging does not match",
+               "Encryption_IV" => $Step_1['IV'],
+               "Unmerging_IV" => $Step_2['IV']
+           );
+       }
+       if ($Step_4 === $String){
+           $Return_Array[] = "Passed Data Successfully Decrypted";
+       }else{
+           $Return_Array['Errors']['String'] = "Error Encountered. Encrypted and Decrypted Strings Do Not Match";
+       }
+
+       return $Return_Array;
    }
 
 
