@@ -11,7 +11,7 @@
 
 class Encryption {
 
-   protected function EncryContents ($String){
+   protected function Encrypt ($String){
         /*
          *  Create an Encrypted String.
          *  @Var string
@@ -28,7 +28,7 @@ class Encryption {
             );
     }
 
-   public function Encrypt($String){
+   public function Merge($Array){
         /*
          *  Merge The Array Returned From the String Encryption into a string
          *
@@ -39,7 +39,7 @@ class Encryption {
          *          4) Create an empty string to be manipulated using the attaching loop
          *
          */
-       $Array = $this->EncryContents($String);
+     #  $Array = $this->Encrypt($String);
         $Encrypted_String = $Array['EncryptedString'];
         $IV = $Array['IV'];
         $Hash = $Array['Hash'];
@@ -133,12 +133,27 @@ class Encryption {
         );
     }
 
-    function Decrypt($Array){
+   function Decrypt($Array){
         /*
          *  Decrypt The Encrypted String with passing correct information as managed by UnMergeString
          */
         return openssl_decrypt($Array['EncryptedString'],"AES-256-CBC",$Array['Hash'],0,$Array['IV']);
-    }
+   }
+
+
+   public function Debug($String){
+        $Step_1 = $this->Encrypt($String);
+        $Step_2 = $this->Merge($Step_1);
+        $Step_3 = $this->UnMerge($Step_2);
+        $Step_4 = $this->Decrypt($Step_3);
+
+       return array(
+           "Step1" => array ($Step_1),
+           "Step2"=> array($Step_2),
+           "Step3"=> array($Step_3),
+           "Step4"=> array($Step_4)
+       );
+   }
 
 
 
